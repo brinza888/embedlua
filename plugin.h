@@ -1,6 +1,8 @@
 #ifndef PLUGIN_H
 #define PLUGIN_H
 
+#include <stdbool.h>
+
 #include <dirent.h>
 #include <unistd.h>
 #include <linux/limits.h>
@@ -41,7 +43,7 @@ void plist_loaddir(PluginList *plist, const char *dir);
 
 Plugin *pl_open(const char *filename);
 void pl_close(Plugin *plugin);
-void pl_command(Plugin *plugin, const char *command);
+bool pl_command(Plugin *plugin, const char *command);
 
 
 #endif

@@ -24,10 +24,10 @@ int main(int argc, char *argv[]) {
         commandLen = readCommand(command, maxCommandLen);
 
         if (commandLen == 0 || strcmp(command, "exit") == 0) {
-            break;
+            running = false;
         }
         else if (strcmp(command, "pl_list") == 0) {
-            printf("Plugins list:\n");
+            printf("Plugin list:\n");
             for (size_t i = 0; i < plist->count; i++) {
                 printf("\tPlugin %s (v%s) by %s\n",
                        plist->list[i]->name,
@@ -36,7 +36,13 @@ int main(int argc, char *argv[]) {
             }
         }
         else {
-            eprintf("Command not exists: %s\n", command);
+            bool handled = false;
+            for (size_t i = 0; i < plist->count; i++) {
+                handled = handled || pl_command(plist->list[i], command);
+            }
+            if (!handled) {
+                eprintf("Command not exists: %s\n", command);
+            } 
         }
     }
     

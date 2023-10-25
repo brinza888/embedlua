@@ -117,6 +117,19 @@ void pl_close(Plugin *plugin) {
     free(plugin);
 }
 
-void pl_command(Plugin *plugin, const char *command) {
-    
+bool pl_command(Plugin *plugin, const char *command) {
+    lua_getglobal(plugin->L, "pl_command");
+    if (lua_isfunction(plugin->L, -1) == 0) {
+        log_WARN("Plugin", "No function pl_command in plugin %s\n", plugin->name);
+        return false;
+    }
+    bool result = false;
+    lua_pushlstring(plugin->L, command, strlen(command));
+    if (lua_pcall(plugin->L, 1, 1, 0) == LUA_OK) {
+        if (lua_isboolean(plugin->L, -1) == 1) {
+            result = lua_toboolean(plugin->L, -1);
+        }
+        lua_pop(plugin->L, lua_gettop(plugin->L));
+    }
+    return result;
 }

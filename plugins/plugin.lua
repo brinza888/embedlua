@@ -9,10 +9,16 @@
 pl_name = "FirstPlugin"
 pl_version = "0.0.1"
 pl_author = "brinza888"
+pl_alias = "fp"
 
 
-function command(name, args)
+function pl_command(name, args)
 
-    print("Handling command "..name)
+    if name == "hello" then
+        print("Hello, user!")
+        return true
+    else
+        return false
+    end
 
 end
