@@ -9,6 +9,7 @@
 
 int main(int argc, char *argv[]) {
     PluginList *plist = plist_open();
+    // plist_loaddir(plist, "splugins");  // system plugins (add in future)
     plist_loaddir(plist, "plugins");
 
     bool running = true;
@@ -40,9 +41,20 @@ int main(int argc, char *argv[]) {
             for (size_t i = 0; i < plist->count; i++) {
                 Plugin *pl = plist->list[i];
                 for (size_t j = 0; j < pl->cmdlist->count; j++) {
-                    printf("%s (from: %s)\n", pl->cmdlist->list[j]->name, pl->name);
+                    printf("%s - %s (from: %s)\n",
+                           pl->cmdlist->list[j]->name,
+                           pl->cmdlist->list[j]->description,
+                           pl->name);
                 }
             }
+        }
+        else if (strcmp(command, "pl_reload") == 0) {
+            plist_reload(plist);
+        }
+        else if (strcmp(command, "pl_reread") == 0) {
+            plist_close(plist);
+            plist = plist_open();
+            plist_loaddir(plist, "plugins");
         }
         else {
             bool handled = false;

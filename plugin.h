@@ -43,9 +43,11 @@ void plist_preserve(PluginList *plist);
 void plist_add(PluginList *plist, Plugin *plugin);
 void plist_load(PluginList *plist, const char *filename);
 void plist_loaddir(PluginList *plist, const char *dir);
+void plist_reload(PluginList *plist);
 
 Plugin *pl_open(const char *filename);
 void pl_close(Plugin *plugin);
+Plugin *pl_reload(Plugin *plugin);
 bool pl_command(Plugin *plugin, const char *command);
 
 

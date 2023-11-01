@@ -74,11 +74,17 @@ void plist_loaddir(PluginList *plist, const char *dir) {
     closedir(pluginDir);
 }
 
+void plist_reload(PluginList *plist) {
+    log_DEBUG("Plugin", "Reloading all!\n");
+    for (size_t i = 0; i < plist->count; i++) {
+        plist->list[i] = pl_reload(plist->list[i]);
+    }
+}
+
 
 static Plugin* curr_plugin = NULL;
 
-
-int pl_lua_register_command(lua_State *L) {
+int plugin_regcmd(lua_State *L) {
     const char *command_name = luaL_checklstring(L, 1, NULL);
     const char *description = luaL_checklstring(L, 2, NULL);
     cmdlist_add(curr_plugin->cmdlist, cmd_open(command_name, description));
@@ -100,7 +106,7 @@ Plugin *pl_open(const char *filename) {
     plugin->L = luaL_newstate();
     luaL_openlibs(plugin->L);
 
-    lua_pushcfunction(plugin->L, &pl_lua_register_command);
+    lua_pushcfunction(plugin->L, &plugin_regcmd);
     lua_setglobal(plugin->L, "pl_regcmd");
 
     if (luaL_dofile(plugin->L, plugin->filename) == LUA_OK) {
@@ -135,6 +141,12 @@ void pl_close(Plugin *plugin) {
     lua_close(plugin->L);
     cmdlist_close(plugin->cmdlist);
     free(plugin);
+}
+
+Plugin *pl_reload(Plugin *plugin) {
+    Plugin *newplugin = pl_open(plugin->filename);
+    pl_close(plugin);
+    return newplugin;
 }
 
 bool pl_command(Plugin *plugin, const char *command) {
