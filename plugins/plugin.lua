@@ -7,18 +7,24 @@
 --]]
 
 pl_name = "FirstPlugin"
-pl_version = "0.0.1"
+pl_version = "0.0.2"
 pl_author = "brinza888"
 pl_alias = "fp"
 
 
-function pl_command(name, args)
+pl_regcmd("hello", "Says greeting to user")
+pl_regcmd("bye", "Says goodbye to user")
 
+
+function pl_command(name, args)
     if name == "hello" then
         print("Hello, user!")
+        return true
+    elseif name == "bye" then
+        print("Bye, user!")
         return true
     else
         return false
     end
-
+    
 end

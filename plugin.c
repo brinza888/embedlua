@@ -75,6 +75,17 @@ void plist_loaddir(PluginList *plist, const char *dir) {
 }
 
 
+static Plugin* curr_plugin = NULL;
+
+
+int pl_lua_register_command(lua_State *L) {
+    const char *command_name = luaL_checklstring(L, 1, NULL);
+    const char *description = luaL_checklstring(L, 2, NULL);
+    cmdlist_add(curr_plugin->cmdlist, cmd_open(command_name, description));
+    return 0;
+}
+
+
 Plugin *pl_open(const char *filename) {
     log_DEBUG("Plugin", "Loading %s\n", filename);
     Plugin *plugin = (Plugin*) calloc(sizeof(Plugin), 1);
@@ -82,9 +93,15 @@ Plugin *pl_open(const char *filename) {
         log_FATAL("pl_open");
 
     strncpy(plugin->filename, filename, PLUGIN_FILENAME_MAX);
+
+    curr_plugin = plugin;
+    plugin->cmdlist = cmdlist_open();
     
     plugin->L = luaL_newstate();
     luaL_openlibs(plugin->L);
+
+    lua_pushcfunction(plugin->L, &pl_lua_register_command);
+    lua_setglobal(plugin->L, "pl_regcmd");
 
     if (luaL_dofile(plugin->L, plugin->filename) == LUA_OK) {
         lua_pop(plugin->L, lua_gettop(plugin->L));
@@ -95,6 +112,8 @@ Plugin *pl_open(const char *filename) {
         pl_close(plugin);
         return NULL;
     }
+
+    curr_plugin = NULL;
 
     lua_getglobal(plugin->L, "pl_name");
     plugin->name = lua_tostring(plugin->L, -1);
@@ -114,6 +133,7 @@ Plugin *pl_open(const char *filename) {
 void pl_close(Plugin *plugin) {
     log_DEBUG("Plugin", "Unloading %s\n", plugin->filename);
     lua_close(plugin->L);
+    cmdlist_close(plugin->cmdlist);
     free(plugin);
 }
 

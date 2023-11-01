@@ -27,12 +27,21 @@ int main(int argc, char *argv[]) {
             running = false;
         }
         else if (strcmp(command, "pl_list") == 0) {
-            printf("Plugin list:\n");
+            printf("Plugins:\n");
             for (size_t i = 0; i < plist->count; i++) {
                 printf("\tPlugin %s (v%s) by %s\n",
                        plist->list[i]->name,
                        plist->list[i]->version,
                        plist->list[i]->author);
+            }
+        }
+        else if (strcmp(command, "pl_cmds") == 0) {
+            printf("Commands:\n");
+            for (size_t i = 0; i < plist->count; i++) {
+                Plugin *pl = plist->list[i];
+                for (size_t j = 0; j < pl->cmdlist->count; j++) {
+                    printf("%s (from: %s)\n", pl->cmdlist->list[j]->name, pl->name);
+                }
             }
         }
         else {

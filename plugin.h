@@ -11,7 +11,10 @@
 #include <lua5.4/lualib.h>
 #include <lua5.4/lauxlib.h>
 
+#include "command.h"
+
 #define PLUGIN_FILENAME_MAX 256
+
 
 
 typedef struct Plugin {
@@ -22,7 +25,7 @@ typedef struct Plugin {
     const char *alias;
     lua_State *L;
 
-    char **commands;
+    CmdList *cmdlist;
 } Plugin;
 
 
