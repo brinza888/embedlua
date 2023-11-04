@@ -52,14 +52,14 @@ void cmdlist_add(CmdList *cmdlist, Cmd *cmd) {
 }
 
 
-Cmd *cmd_open(const char *name, const char *description) {
+Cmd *cmd_open(const char *name, const char *description, int lua_function) {
     Cmd *cmd = calloc(sizeof(Cmd), 1);
     cmd->name = name;
     cmd->description = description;
+    cmd->lua_function = lua_function;
     return cmd;
 }
 
 void cmd_close(Cmd *cmd) {
     free(cmd);
 }
-

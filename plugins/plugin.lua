@@ -3,28 +3,16 @@
     based on C and Lua with Lua C API
 
     Author: Ilya Bezrukov (brinza888)
-    18.10.2023
+    18.10.2023, 04.11.2023
 --]]
 
-pl_name = "FirstPlugin"
-pl_version = "0.0.2"
-pl_author = "brinza888"
-pl_alias = "fp"
+api.setname("FirstPlugin")
+api.setversion("0.0.2")
+api.setauthor("brinza888")
+api.setalias("fp")
 
+function hello(command) print("Hello, user!") end
+function bye(command) print("Bye, user!") end
 
-pl_regcmd("hello", "Says greeting to user")
-pl_regcmd("bye", "Says goodbye to user")
-
-
-function pl_command(name, args)
-    if name == "hello" then
-        print("Hello, user!")
-        return true
-    elseif name == "bye" then
-        print("Bye, user!")
-        return true
-    else
-        return false
-    end
-    
-end
+api.regcmd("hello", "Says greeting to user", hello)
+api.regcmd("bye", "Says goodbye to user", bye)

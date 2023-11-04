@@ -16,6 +16,8 @@
 #define PLUGIN_FILENAME_MAX 256
 
 
+#define REG_PLUGIN_PTR "__plugin_ptr"
+
 
 typedef struct Plugin {
     char filename[PLUGIN_FILENAME_MAX];
@@ -49,6 +51,8 @@ Plugin *pl_open(const char *filename);
 void pl_close(Plugin *plugin);
 Plugin *pl_reload(Plugin *plugin);
 bool pl_command(Plugin *plugin, const char *command);
+
+Plugin *pl_fromlua(lua_State *L);
 
 
 #endif

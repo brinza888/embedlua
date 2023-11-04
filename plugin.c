@@ -3,6 +3,7 @@
 
 #include "plugin.h"
 #include "utils.h"
+#include "api.h"
 
 
 PluginList *plist_open() {
@@ -81,17 +82,6 @@ void plist_reload(PluginList *plist) {
     }
 }
 
-
-static Plugin* curr_plugin = NULL;
-
-int plugin_regcmd(lua_State *L) {
-    const char *command_name = luaL_checklstring(L, 1, NULL);
-    const char *description = luaL_checklstring(L, 2, NULL);
-    cmdlist_add(curr_plugin->cmdlist, cmd_open(command_name, description));
-    return 0;
-}
-
-
 Plugin *pl_open(const char *filename) {
     log_DEBUG("Plugin", "Loading %s\n", filename);
     Plugin *plugin = (Plugin*) calloc(sizeof(Plugin), 1);
@@ -99,15 +89,18 @@ Plugin *pl_open(const char *filename) {
         log_FATAL("pl_open");
 
     strncpy(plugin->filename, filename, PLUGIN_FILENAME_MAX);
-
-    curr_plugin = plugin;
     plugin->cmdlist = cmdlist_open();
-    
+
     plugin->L = luaL_newstate();
     luaL_openlibs(plugin->L);
 
-    lua_pushcfunction(plugin->L, &plugin_regcmd);
-    lua_setglobal(plugin->L, "pl_regcmd");
+    lua_pushliteral(plugin->L, REG_PLUGIN_PTR);
+    lua_pushlightuserdata(plugin->L, (void*) plugin);
+    lua_settable(plugin->L, LUA_REGISTRYINDEX);
+
+    lua_newtable(plugin->L);
+    luaL_setfuncs(plugin->L, pluginAPI, 0);
+    lua_setglobal(plugin->L, "api");
 
     if (luaL_dofile(plugin->L, plugin->filename) == LUA_OK) {
         lua_pop(plugin->L, lua_gettop(plugin->L));
@@ -118,20 +111,6 @@ Plugin *pl_open(const char *filename) {
         pl_close(plugin);
         return NULL;
     }
-
-    curr_plugin = NULL;
-
-    lua_getglobal(plugin->L, "pl_name");
-    plugin->name = lua_tostring(plugin->L, -1);
-
-    lua_getglobal(plugin->L, "pl_version");
-    plugin->version = lua_tostring(plugin->L, -1);
-
-    lua_getglobal(plugin->L, "pl_author");
-    plugin->author = lua_tostring(plugin->L, -1);
-
-    lua_getglobal(plugin->L, "pl_alias");
-    plugin->alias = lua_tostring(plugin->L, -1);
 
     return plugin;
 }
@@ -150,18 +129,25 @@ Plugin *pl_reload(Plugin *plugin) {
 }
 
 bool pl_command(Plugin *plugin, const char *command) {
-    lua_getglobal(plugin->L, "pl_command");
-    if (lua_isfunction(plugin->L, -1) == 0) {
-        log_WARN("Plugin", "No function pl_command in plugin %s\n", plugin->name);
+    Cmd *cmd = cmdlist_get(plugin->cmdlist, command);
+    if (!cmd)
         return false;
-    }
-    bool result = false;
+
+    lua_rawgeti(plugin->L, LUA_REGISTRYINDEX, cmd->lua_function);
     lua_pushlstring(plugin->L, command, strlen(command));
     if (lua_pcall(plugin->L, 1, 1, 0) == LUA_OK) {
-        if (lua_isboolean(plugin->L, -1) == 1) {
-            result = lua_toboolean(plugin->L, -1);
-        }
         lua_pop(plugin->L, lua_gettop(plugin->L));
     }
-    return result;
+    else {
+        const char *errorMsg = lua_tostring(plugin->L, -1);
+        log_ERROR("Plugin", "Unsuccess command %s: %s\n", command, errorMsg);
+    }
+
+    return true;
+}
+
+Plugin *pl_fromlua(lua_State *L) {
+    lua_pushliteral(L, REG_PLUGIN_PTR);
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    return (Plugin*) lua_touserdata(L, -1);
 }

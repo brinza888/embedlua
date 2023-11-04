@@ -4,7 +4,7 @@ LDFLAGS = -llua5.4
 
 BIN ?= bin/
 
-OBJECTS := main.o utils.o plugin.o command.o
+OBJECTS := main.o utils.o plugin.o command.o api.o
 OBJECTS := $(addprefix $(BIN), $(OBJECTS))
 
 EXE := prog

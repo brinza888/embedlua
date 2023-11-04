@@ -5,6 +5,7 @@
 typedef struct Cmd {
     const char *name;
     const char *description;
+    int lua_function;
 } Cmd;
 
 
@@ -21,8 +22,7 @@ Cmd *cmdlist_get(const CmdList *cmdlist, const char *name);
 void cmdlist_preserve(CmdList *cmdlist);
 void cmdlist_add(CmdList *cmdlist, Cmd *cmd);
 
-Cmd *cmd_open(const char *name, const char *description);
+Cmd *cmd_open(const char *name, const char *description, int lua_function);
 void cmd_close(Cmd *cmd);
-
 
 #endif
