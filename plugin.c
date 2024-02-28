@@ -92,7 +92,10 @@ Plugin *pl_open(const char *filename) {
     plugin->cmdlist = cmdlist_open();
 
     plugin->L = luaL_newstate();
-    luaL_openlibs(plugin->L);
+    luaopen_base(plugin->L);
+    luaopen_string(plugin->L);
+    luaopen_table(plugin->L);
+    luaopen_math(plugin->L);
 
     lua_pushliteral(plugin->L, REG_PLUGIN_PTR);
     lua_pushlightuserdata(plugin->L, (void*) plugin);
@@ -149,5 +152,7 @@ bool pl_command(Plugin *plugin, const char *command) {
 Plugin *pl_fromlua(lua_State *L) {
     lua_pushliteral(L, REG_PLUGIN_PTR);
     lua_gettable(L, LUA_REGISTRYINDEX);
-    return (Plugin*) lua_touserdata(L, -1);
+    Plugin *plugin = lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return plugin;
 }
